@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: quantum-leap
+Version: 0.1.0
+Summary: The Ultimate Hybrid AI Accelerator Simulator
+Author: Jules
+Requires-Dist: numpy
+Requires-Dist: tensornetwork
+Dynamic: author
+Dynamic: requires-dist
+Dynamic: summary

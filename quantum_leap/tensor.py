@@ -1,9 +1,5 @@
 import numpy as np
-from .parallel import parallel_matmul
-
-# --- Constants ---
-# Use parallel matmul for matrices where the product of dimensions exceeds this threshold
-PARALLEL_THRESHOLD = 10000
+from .chip import CHIP
 
 def _unbroadcast(grad, target_shape):
     """
@@ -77,7 +73,10 @@ class Tensor:
     def __add__(self, other):
         """Element-wise addition."""
         other = other if isinstance(other, Tensor) else Tensor(other)
-        out = Tensor(self.data + other.data, requires_grad=(self.requires_grad or other.requires_grad))
+
+        # --- Chip-based Execution ---
+        result_data = CHIP.execute('add', self.data, other.data)
+        out = Tensor(result_data, requires_grad=(self.requires_grad or other.requires_grad))
         
         if out.requires_grad:
             out._prev = {self, other}
@@ -93,7 +92,10 @@ class Tensor:
     def __mul__(self, other):
         """Element-wise multiplication."""
         other = other if isinstance(other, Tensor) else Tensor(other)
-        out = Tensor(self.data * other.data, requires_grad=(self.requires_grad or other.requires_grad))
+
+        # --- Chip-based Execution ---
+        result_data = CHIP.execute('mul', self.data, other.data)
+        out = Tensor(result_data, requires_grad=(self.requires_grad or other.requires_grad))
         
         if out.requires_grad:
             out._prev = {self, other}
@@ -112,13 +114,9 @@ class Tensor:
         """Matrix multiplication."""
         other = other if isinstance(other, Tensor) else Tensor(other)
         
-        # --- Dynamic Execution ---
-        # Decide whether to use parallel or serial matmul
-        if self.data.size * other.data.size > PARALLEL_THRESHOLD:
-            result_data = parallel_matmul(self.data, other.data)
-        else:
-            result_data = self.data @ other.data
-            
+        # --- Chip-based Execution ---
+        # The chip will handle the decision of running in parallel or serially.
+        result_data = CHIP.execute('matmul', self.data, other.data)
         out = Tensor(result_data, requires_grad=(self.requires_grad or other.requires_grad))
         
         if out.requires_grad:
