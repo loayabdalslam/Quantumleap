@@ -1,6 +1,10 @@
 import numpy as np
 import multiprocessing
 
+# --- Constants ---
+# Use parallel matmul for matrices where the product of dimensions exceeds this threshold
+PARALLEL_THRESHOLD = 10000
+
 def _matmul_worker(args):
     """Helper function for the multiprocessing pool."""
     a_chunk, b = args
